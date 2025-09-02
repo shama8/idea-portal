@@ -95,4 +95,23 @@ h1, h2 {
     .card {
         margin: 0 0 1rem;
     }
+    #login-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  z-index: -1;
+  animation: pulseFrames 12s infinite;
+}
+
+@keyframes pulseFrames {
+  0%   { background-image: url('C:\Users\shama.m\Downloads\idea_portal_mvp\frontend\asset\RandomFileName_3b4f979b-0f74-404f-acaa-4754aac64760.png'); }
+  33%  { background-image: url('C:\Users\shama.m\Downloads\idea_portal_mvp\frontend\asset\RandomFileName_42727847-3c18-4608-9b2b-af4376e85201.png'); }
+  66%  { background-image: url('C:\Users\shama.m\Downloads\idea_portal_mvp\frontend\asset\RandomFileName_bf25796b-f9f8-4dfd-b26e-18ab63ef2a97.png'); }
+  100% { background-image: url('C:\Users\shama.m\Downloads\idea_portal_mvp\frontend\asset\RandomFileName_3b4f979b-0f74-404f-acaa-4754aac64760.png'); }
+}
+
 }
