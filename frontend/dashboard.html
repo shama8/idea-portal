@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Idea Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>Idea Dashboard</h2>
+      <div>
+        <button class="btn btn-danger me-2" onclick="logout()">Logout</button>
+        <button class="btn btn-success" onclick="window.location.href='add-idea.html'">+ Add Idea</button>
+      </div>
+    </div>
+
+    <div id="ideaList" class="row g-3">
+      <!-- Ideas will be listed here -->
+    </div>
+  </div>
+
+  <script>
+    // Redirect if not logged in
+    if (localStorage.getItem("loggedIn") !== "true") {
+      window.location.href = "index.html";
+    }
+
+    const ideas = JSON.parse(localStorage.getItem("ideas") || "[]");
+    const ideaList = document.getElementById("ideaList");
+
+    if (ideas.length === 0) {
+      ideaList.innerHTML = '<p class="text-muted">No ideas submitted yet.</p>';
+    } else {
+      ideas.forEach(idea => {
+        const div = document.createElement("div");
+        div.className = "col-12";
+        div.innerHTML = `
+          <div class="card">
+            <div class="card-body">
+              <h5>${idea.title}</h5>
+              <p>${idea.description}</p>
+              <span class="badge bg-info">${idea.category || "Uncategorized"}</span>
+              <span class="badge bg-warning text-dark">Impact: ${idea.impact}</span>
+            </div>
+          </div>
+        `;
+        ideaList.appendChild(div);
+      });
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedIn");
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
