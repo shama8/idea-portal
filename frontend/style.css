@@ -1,11 +1,37 @@
-/* General Page Styling */
-body {
-    background: linear-gradient(to right, #02464f, #ffffff);
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+
+    /* Optional GPU acceleration to prevent flickering */
+    backface-visibility: hidden;
+    transform: translateZ(0);
 }
 
-/* Header */
+#login-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    z-index: -1;
+    animation: pulseFrames 12s infinite;
+    will-change: background-image;
+    contain: strict;
+}
+
+@keyframes pulseFrames {
+    0%   { background-image: url('../asset/RandomFileName_3b4f979b-0f74-404f-acaa-4754aac64760.png'); }
+    33%  { background-image: url('../asset/RandomFileName_42727847-3c18-4608-9b2b-af4376e85201.png'); }
+    66%  { background-image: url('../asset/RandomFileName_bf25796b-f9f8-4dfd-b26e-18ab63ef2a97.png'); }
+    100% { background-image: url('../asset/RandomFileName_3b4f979b-0f74-404f-acaa-4754aac64760.png'); }
+}
+
 h1, h2 {
     color: #343a40;
     font-weight: 600;
@@ -13,34 +39,33 @@ h1, h2 {
     margin-bottom: 1.5rem;
 }
 
-/* Card Styling */
-.card {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
 .card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* Form Elements */
 .form-label {
     font-weight: 500;
     color: #495057;
 }
 
 .form-control, .form-select {
+    background-color: white;
+    color: black;
     border-radius: 0.375rem;
+    border: 1px solid #ced4da;
     transition: border-color 0.3s, box-shadow 0.3s;
+    position: relative;
+    z-index: 2;
 }
 
 .form-control:focus, .form-select:focus {
     border-color: #80bdff;
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
+    background-color: white;
+    color: black;
 }
 
-/* Buttons */
 .btn {
     transition: background-color 0.3s, transform 0.2s;
 }
@@ -74,7 +99,6 @@ h1, h2 {
     border-color: #bd2130;
 }
 
-/* Idea Dashboard */
 #ideaList .card {
     margin-bottom: 1rem;
     background-color: #ffffff;
@@ -86,7 +110,6 @@ h1, h2 {
     border-left-color: #007bff;
 }
 
-/* Responsive adjustments */
 @media (max-width: 576px) {
     h1, h2 {
         font-size: 1.5rem;
@@ -95,23 +118,4 @@ h1, h2 {
     .card {
         margin: 0 0 1rem;
     }
-    #login-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  z-index: -1;
-  animation: pulseFrames 12s infinite;
-}
-
-@keyframes pulseFrames {
-  0%   { background-image: url('C:\Users\shama.m\Downloads\idea_portal_mvp\frontend\asset\RandomFileName_3b4f979b-0f74-404f-acaa-4754aac64760.png'); }
-  33%  { background-image: url('C:\Users\shama.m\Downloads\idea_portal_mvp\frontend\asset\RandomFileName_42727847-3c18-4608-9b2b-af4376e85201.png'); }
-  66%  { background-image: url('C:\Users\shama.m\Downloads\idea_portal_mvp\frontend\asset\RandomFileName_bf25796b-f9f8-4dfd-b26e-18ab63ef2a97.png'); }
-  100% { background-image: url('C:\Users\shama.m\Downloads\idea_portal_mvp\frontend\asset\RandomFileName_3b4f979b-0f74-404f-acaa-4754aac64760.png'); }
-}
-
 }
