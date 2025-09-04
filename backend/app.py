@@ -7,10 +7,15 @@ import numpy as np
 
 app = Flask(__name__)
 
-# ✅ Proper CORS config
+# ✅ CORS setup: allow both local and deployed frontend
 CORS(
     app,
-    resources={r"/api/*": {"origins": "http://localhost:3000"}},
+    resources={r"/api/*": {"origins": [
+        "http://localhost:3000",         # React dev (optional)
+        "http://localhost:5500",         # VSCode Live Server
+        "http://127.0.0.1:5500",         # Live Server alt
+        "https://idea-portal.onrender.com"  # ✅ your actual frontend on Render
+    ]}},
     supports_credentials=True,
     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type"]
@@ -100,7 +105,7 @@ def find_similar():
         input_embedding = get_embedding(input_text)
         ideas = load_ideas()
 
-        SIMILARITY_THRESHOLD = 0.75  # ← Adjust if needed
+        SIMILARITY_THRESHOLD = 0.75
 
         results = []
         for idea in ideas:
@@ -137,9 +142,8 @@ def delete_idea(idea_id):
 # --------------------------------------------
 @app.route('/api/all-ideas', methods=['GET'])
 def get_all_ideas():
-     # If running in production (on Render), return an empty list
-    if os.getenv("FLASK_ENV") == "production" or os.getenv("NODE_ENV") == "production":
-        return jsonify([])  # <-- Return empty list, hide existing ideas
+    if os.getenv("FLASK_ENV") == "production" or os.getenv("RENDER") == "true":
+        return jsonify([])  # hide ideas on live
     ideas = load_ideas()
     ideas_no_embeddings = [
         {k: v for k, v in idea.items() if k != "embedding"} for idea in ideas
