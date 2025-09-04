@@ -142,8 +142,6 @@ def delete_idea(idea_id):
 # --------------------------------------------
 @app.route('/api/all-ideas', methods=['GET'])
 def get_all_ideas():
-    if os.getenv("FLASK_ENV") == "production" or os.getenv("RENDER") == "true":
-        return jsonify([])  # hide ideas on live
     ideas = load_ideas()
     ideas_no_embeddings = [
         {k: v for k, v in idea.items() if k != "embedding"} for idea in ideas
