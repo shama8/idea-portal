@@ -12,56 +12,106 @@
   <div class="container py-5">
     <h2 class="mb-4 text-center">Submit a New Idea</h2>
 
-  <!-- Limit width using Bootstrap utilities -->
-  <form id="ideaForm" class="mx-auto" style="max-width: 600px;">
-    <div class="mb-3">
-      <label for="ideaTitle" class="form-label">Title</label>
-      <input type="text" id="ideaTitle" class="form-control" required>
-    </div>
-    <div class="mb-3">
-      <label for="ideaDescription" class="form-label">Description</label>
-      <textarea id="ideaDescription" class="form-control" rows="3" required></textarea>
-    </div>
-    <div class="mb-3">
-      <label for="ideaCategory" class="form-label">Category</label>
-      <input type="text" id="ideaCategory" class="form-control">
-    </div>
-    <div class="mb-3">
-      <label for="ideaImpact" class="form-label">Impact Level</label>
-      <select id="ideaImpact" class="form-select">
-        <option value="Low">Low</option>
-        <option value="Medium">Medium</option>
-        <option value="High">High</option>
-      </select>
-    </div>
-    <div class="text-center">
-  <button type="submit" class="btn btn-success">Submit Idea</button>
-</div>
-  </form>
-
+    <form id="ideaForm" class="mx-auto" style="max-width: 600px;">
+      <div class="mb-3">
+        <label for="ideaTitle" class="form-label">Title</label>
+        <input type="text" id="ideaTitle" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label for="ideaDescription" class="form-label">Description</label>
+        <textarea id="ideaDescription" class="form-control" rows="3" required></textarea>
+      </div>
+      <div class="mb-3">
+        <label for="ideaCategory" class="form-label">Category</label>
+        <input type="text" id="ideaCategory" class="form-control">
+      </div>
+      <div class="mb-3">
+        <label for="ideaImpact" class="form-label">Impact Level</label>
+        <select id="ideaImpact" class="form-select">
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
+      </div>
+      <div class="text-center">
+        <button type="submit" class="btn btn-success">Submit Idea</button>
+      </div>
+    </form>
+  </div>
 
   <script>
+    // Redirect if not logged in
     if (localStorage.getItem("loggedIn") !== "true") {
       window.location.href = "index.html";
     }
 
-    document.getElementById("ideaForm").addEventListener("submit", function (e) {
+    document.getElementById("ideaForm").addEventListener("submit", async function (e) {
       e.preventDefault();
 
-      const idea = {
-        title: document.getElementById("ideaTitle").value,
-        description: document.getElementById("ideaDescription").value,
-        category: document.getElementById("ideaCategory").value,
-        impact: document.getElementById("ideaImpact").value
-      };
+      const title = document.getElementById("ideaTitle").value.trim();
+      const description = document.getElementById("ideaDescription").value.trim();
+      const category = document.getElementById("ideaCategory").value.trim();
+      const impact = document.getElementById("ideaImpact").value;
 
-      const ideas = JSON.parse(localStorage.getItem("ideas") || "[]");
-      ideas.push(idea);
-      localStorage.setItem("ideas", JSON.stringify(ideas));
+      // Get author from localStorage
+      const author = localStorage.getItem("username") || "Unknown";
+
+      const fullText = `${title}. ${description}`;
+
+      try {
+        // 1. Check for similar ideas
+        const simResponse = await fetch('http://localhost:5000/api/similar-ideas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: fullText }),
+        });
+
+        const simData = await simResponse.json();
+
+        if (simData.error) {
+          alert(simData.error);
+          return;
+        }
+
+        if (!simData.matches || simData.matches.length === 0) {
+          await submitIdea(title, description, category, impact, author);
+          return;
+        }
+
+        let message = "Top similar ideas:\n\n";
+        simData.matches.forEach(match => {
+          message += `- ${match.text} (Score: ${match.similarity})\n`;
+        });
+        message += "\nDo you still want to submit this idea?";
+
+        if (confirm(message)) {
+          await submitIdea(title, description, category, impact, author);
+        }
+
+      } catch (error) {
+        console.error("Error:", error);
+        alert("An error occurred. Please try again.");
+      }
+    });
+
+    async function submitIdea(title, description, category, impact, author) {
+      const addResponse = await fetch('http://localhost:5000/api/add-idea', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description, category, impact, author }),
+      });
+
+      const addData = await addResponse.json();
+
+      if (addData.error) {
+        alert(addData.error);
+        return;
+      }
 
       alert("Idea submitted successfully!");
       window.location.href = "dashboard.html";
-    });
+    }
   </script>
+
 </body>
 </html>
