@@ -23,6 +23,11 @@ CORS(
 
 IDEAS_FILE = "ideas.json"
 
+# ✅ Step 3: Ensure ideas.json file exists
+if not os.path.exists(IDEAS_FILE):
+    with open(IDEAS_FILE, "w") as f:
+        f.write("[]")
+
 # --------------------------------------------
 # Helper: Load ideas
 # --------------------------------------------
@@ -142,11 +147,15 @@ def delete_idea(idea_id):
 # --------------------------------------------
 @app.route('/api/all-ideas', methods=['GET'])
 def get_all_ideas():
-    ideas = load_ideas()
-    ideas_no_embeddings = [
-        {k: v for k, v in idea.items() if k != "embedding"} for idea in ideas
-    ]
-    return jsonify(ideas_no_embeddings)
+    try:
+        ideas = load_ideas()
+        ideas_no_embeddings = [
+            {k: v for k, v in idea.items() if k != "embedding"} for idea in ideas
+        ]
+        return jsonify(ideas_no_embeddings)
+    except Exception as e:
+        app.logger.exception("Error in /api/all-ideas")
+        return jsonify({"error": "Internal Server Error"}), 500
 
 # --------------------------------------------
 # Run the Flask App
@@ -154,4 +163,3 @@ def get_all_ideas():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
-
