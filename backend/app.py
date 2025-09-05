@@ -143,6 +143,12 @@ def get_all_ideas():
     except Exception as e:
         app.logger.exception("Error in /api/all-ideas")
         return jsonify({"error": "Internal Server Error"}), 500
+@app.route('/api/clear-ideas', methods=['POST'])
+def clear_ideas():
+    save_ideas([])
+    return jsonify({"message": "Ideas cleared"})
+
+
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
