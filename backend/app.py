@@ -33,7 +33,13 @@ def load_ideas(include_embeddings=True):
                 ideas = json.load(f)
                 if include_embeddings:
                     for idea in ideas:
-                        idea["embedding"] = np.array(idea["embedding"])
+                        try:
+                            if "embedding" in idea and idea["embedding"] is not None:
+                                idea["embedding"] = np.array(idea["embedding"])
+                            else:
+                                idea["embedding"] = None
+                        except Exception:
+                            idea["embedding"] = None
                 return ideas
         except json.JSONDecodeError:
             return []
@@ -43,11 +49,11 @@ def save_ideas(ideas):
     ideas_to_save = []
     for idea in ideas:
         idea_copy = idea.copy()
-        if "embedding" in idea_copy:
+        if "embedding" in idea_copy and idea_copy["embedding"] is not None:
             idea_copy["embedding"] = idea_copy["embedding"].tolist()
         ideas_to_save.append(idea_copy)
     with open(IDEAS_FILE, "w") as f:
-        json.dump(ideas_to_save, f, indent=2)  # Fixed here
+        json.dump(ideas_to_save, f, indent=2)
 
 @app.route('/api/add-idea', methods=['POST'])
 def add_idea():
@@ -85,39 +91,35 @@ def add_idea():
     except Exception as e:
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
-@app.route('/api/similar-ideas', methods=['POST'])
-def find_similar():
-    data = request.get_json()
-    input_text = data.get("text")
-
-    if not input_text:
-        return jsonify({"error": "Missing text"}), 400
-
-    # Uncomment and fix this if you want to use embeddings again:
-    # try:
-    #     input_embedding = get_embedding(input_text)
-    #     ideas = load_ideas()
-
-    #     SIMILARITY_THRESHOLD = 0.75
-
-    #     results = []
-    #     for idea in ideas:
-    #         score = cosine_similarity(input_embedding, idea["embedding"])
-    #         if score >= SIMILARITY_THRESHOLD:
-    #             results.append({
-    #                 "id": idea.get("id"),
-    #                 "text": f"{idea['title']}. {idea['description']}",
-    #                 "similarity": round(score, 3)
-    #             })
-
-    #     results.sort(key=lambda x: x["similarity"], reverse=True)
-    #     return jsonify({"input": input_text, "matches": results[:3]})
-
-    # except Exception as e:
-    #     return jsonify({"error": f"Server error: {str(e)}"}), 500
-
-    # Temporary response since similarity is disabled
-    return jsonify({"error": "Similarity search is currently disabled."}), 503
+# @app.route('/api/similar-ideas', methods=['POST'])
+# def find_similar():
+#     data = request.get_json()
+#     input_text = data.get("text")
+#
+#     if not input_text:
+#         return jsonify({"error": "Missing text"}), 400
+#
+#     try:
+#         input_embedding = get_embedding(input_text)
+#         ideas = load_ideas()
+#
+#         SIMILARITY_THRESHOLD = 0.75
+#
+#         results = []
+#         for idea in ideas:
+#             score = cosine_similarity(input_embedding, idea["embedding"])
+#             if score >= SIMILARITY_THRESHOLD:
+#                 results.append({
+#                     "id": idea.get("id"),
+#                     "text": f"{idea['title']}. {idea['description']}",
+#                     "similarity": round(score, 3)
+#                 })
+#
+#         results.sort(key=lambda x: x["similarity"], reverse=True)
+#         return jsonify({"input": input_text, "matches": results[:3]})
+#
+#     except Exception as e:
+#         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 @app.route('/api/delete-idea/<int:idea_id>', methods=['DELETE'])
 def delete_idea(idea_id):
@@ -133,7 +135,7 @@ def delete_idea(idea_id):
 @app.route('/api/all-ideas', methods=['GET'])
 def get_all_ideas():
     try:
-        ideas = load_ideas()
+        ideas = load_ideas(include_embeddings=False)
         ideas_no_embeddings = [
             {k: v for k, v in idea.items() if k != "embedding"} for idea in ideas
         ]
