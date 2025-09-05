@@ -61,10 +61,11 @@
       // Get author from localStorage
       const author = localStorage.getItem("username") || "Unknown";
 
+      // -- COMMENTED OUT SIMILARITY CHECK --
+      /*
       const fullText = `${title}. ${description}`;
 
       try {
-        // 1. Check for similar ideas
         const simResponse = await fetch(`${API_BASE_URL}/api/similar-ideas`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -97,6 +98,10 @@
         console.error("Error:", error);
         alert("An error occurred. Please try again.");
       }
+      */
+
+      // Directly submit without similarity check
+      await submitIdea(title, description, category, impact, author);
     });
 
     async function submitIdea(title, description, category, impact, author) {
@@ -116,6 +121,6 @@
       alert("Idea submitted successfully!");
       window.location.href = "dashboard.html";
     }
-    </script>
-  </body>
+  </script>
+</body>
 </html>
