@@ -1,20 +1,19 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from embeddings import get_embedding, cosine_similarity
+# from embeddings import get_embedding, cosine_similarity  # 🔒 Temporarily disabled
 import json
 import os
 import numpy as np
 
 app = Flask(__name__)
 
-# ✅ CORS setup: allow both local and deployed frontend
 CORS(
     app,
     resources={r"/api/*": {"origins": [
-        "http://localhost:3000",         # React dev (optional)
-        "http://localhost:5500",         # VSCode Live Server
-        "http://127.0.0.1:5500",         # Live Server alt
-        "https://idea-portal.onrender.com"  # ✅ your actual frontend on Render
+        "http://localhost:3000",
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+        "https://idea-portal.onrender.com"
     ]}},
     supports_credentials=True,
     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -23,7 +22,7 @@ CORS(
 
 IDEAS_FILE = "ideas.json"
 
-# ✅ Step 3: Ensure ideas.json file exists
+# ✅ Ensure ideas.json exists
 if not os.path.exists(IDEAS_FILE):
     with open(IDEAS_FILE, "w") as f:
         f.write("[]")
@@ -35,10 +34,7 @@ def load_ideas():
     if os.path.exists(IDEAS_FILE):
         try:
             with open(IDEAS_FILE, "r") as f:
-                ideas = json.load(f)
-                for idea in ideas:
-                    idea["embedding"] = np.array(idea["embedding"])
-                return ideas
+                return json.load(f)
         except json.JSONDecodeError:
             return []
     return []
@@ -47,16 +43,11 @@ def load_ideas():
 # Helper: Save ideas
 # --------------------------------------------
 def save_ideas(ideas):
-    ideas_to_save = []
-    for idea in ideas:
-        idea_copy = idea.copy()
-        idea_copy["embedding"] = idea_copy["embedding"].tolist()
-        ideas_to_save.append(idea_copy)
     with open(IDEAS_FILE, "w") as f:
-        json.dump(ideas_to_save, f, indent=2)
+        json.dump(ideas, f, indent=2)
 
 # --------------------------------------------
-# API: Add New Idea
+# API: Add New Idea (no embeddings)
 # --------------------------------------------
 @app.route('/api/add-idea', methods=['POST'])
 def add_idea():
@@ -71,8 +62,8 @@ def add_idea():
         return jsonify({"error": "Title and description are required"}), 400
 
     try:
-        full_text = f"{title}. {description}"
-        embedding = get_embedding(full_text)
+        # full_text = f"{title}. {description}"
+        # embedding = get_embedding(full_text)  # 🔒 Disabled
 
         ideas = load_ideas()
         new_id = max([idea.get("id", 0) for idea in ideas] + [0]) + 1
@@ -84,7 +75,7 @@ def add_idea():
             "category": category,
             "impact": impact,
             "author": author,
-            "embedding": embedding
+            # "embedding": embedding  # 🔒 Removed
         }
 
         ideas.append(new_idea)
@@ -96,69 +87,42 @@ def add_idea():
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 # --------------------------------------------
-# API: Find Similar Ideas
+# API: Find Similar Ideas — disabled to save memory
 # --------------------------------------------
-@app.route('/api/similar-ideas', methods=['POST'])
-def find_similar():
-    data = request.get_json()
-    input_text = data.get("text")
-
-    if not input_text:
-        return jsonify({"error": "Missing text"}), 400
-
-    try:
-        input_embedding = get_embedding(input_text)
-        ideas = load_ideas()
-
-        SIMILARITY_THRESHOLD = 0.75
-
-        results = []
-        for idea in ideas:
-            score = cosine_similarity(input_embedding, idea["embedding"])
-            if score >= SIMILARITY_THRESHOLD:
-                results.append({
-                    "id": idea.get("id"),
-                    "text": f"{idea['title']}. {idea['description']}",
-                    "similarity": round(score, 3)
-                })
-
-        results.sort(key=lambda x: x["similarity"], reverse=True)
-        return jsonify({"input": input_text, "matches": results[:3]})
-
-    except Exception as e:
-        return jsonify({"error": f"Server error: {str(e)}"}), 500
+# @app.route('/api/similar-ideas', methods=['POST'])
+# def find_similar():
+#     return jsonify({"error": "Similarity feature is temporarily disabled"}), 503
 
 # --------------------------------------------
-# API: Delete Idea by ID
+# API: Delete Idea by ID — disabled to simplify deploy
 # --------------------------------------------
-@app.route('/api/delete-idea/<int:idea_id>', methods=['DELETE'])
-def delete_idea(idea_id):
-    ideas = load_ideas()
-    filtered_ideas = [idea for idea in ideas if idea.get("id") != idea_id]
+# @app.route('/api/delete-idea/<int:idea_id>', methods=['DELETE'])
+# def delete_idea(idea_id):
+#     ideas = load_ideas()
+#     filtered_ideas = [idea for idea in ideas if idea.get("id") != idea_id]
 
-    if len(filtered_ideas) == len(ideas):
-        return jsonify({"error": "Idea not found"}), 404
+#     if len(filtered_ideas) == len(ideas):
+#         return jsonify({"error": "Idea not found"}), 404
 
-    save_ideas(filtered_ideas)
-    return jsonify({"message": "Idea deleted successfully"})
+#     save_ideas(filtered_ideas)
+#     return jsonify({"message": "Idea deleted successfully"})
 
 # --------------------------------------------
-# API: Get All Ideas (without embeddings)
+# API: Get All Ideas (no embeddings)
 # --------------------------------------------
 @app.route('/api/all-ideas', methods=['GET'])
 def get_all_ideas():
     try:
         ideas = load_ideas()
-        ideas_no_embeddings = [
-            {k: v for k, v in idea.items() if k != "embedding"} for idea in ideas
-        ]
-        return jsonify(ideas_no_embeddings)
+        for idea in ideas:
+            idea.pop("embedding", None)  # Safe: remove if exists
+        return jsonify(ideas)
     except Exception as e:
         app.logger.exception("Error in /api/all-ideas")
         return jsonify({"error": "Internal Server Error"}), 500
 
 # --------------------------------------------
-# Run the Flask App
+# Run App
 # --------------------------------------------
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
