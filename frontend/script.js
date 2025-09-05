@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', function () {
     // Handle login form submission
     document.getElementById('loginForm').addEventListener('submit', function (e) {
@@ -56,15 +55,29 @@ document.addEventListener('DOMContentLoaded', function () {
                     card.className = 'col-md-6';
 
                     card.innerHTML = `
-                        <div class="card h-100">
+                        <div class="card h-100" style="cursor:pointer;">
                             <div class="card-body">
                                 <h5 class="card-title">${idea.title}</h5>
-                                <p class="card-text">${idea.description}</p>
+                                <p class="card-text clamp-text">${idea.description}</p>
                                 <p><strong>Category:</strong> ${idea.category}</p>
                                 <p><strong>Impact:</strong> ${idea.impact}</p>
                             </div>
                         </div>
                     `;
+                    // Add click listener to open modal with full info
+                    card.addEventListener('click', () => {
+                        const modalTitle = document.getElementById('ideaModalLabel');
+                        const modalBody = document.getElementById('ideaModalBody');
+                        const modalMeta = document.getElementById('ideaModalMeta');
+
+                        modalTitle.textContent = idea.title;
+                        modalBody.textContent = idea.description;
+                        modalMeta.textContent = `Category: ${idea.category} | Impact: ${idea.impact}`;
+
+                        const modal = new bootstrap.Modal(document.getElementById('ideaModal'));
+                        modal.show();
+                    });
+
                     ideaList.appendChild(card);
                 });
             });

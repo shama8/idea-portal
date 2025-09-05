@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from datetime import datetime
 # from embeddings import get_embedding, cosine_similarity  # 🔒 Temporarily disabled
 import json
 import os
@@ -80,6 +81,7 @@ def add_idea():
             "category": category,
             "impact": impact,
             "author": author,
+             "date_submitted": datetime.utcnow().isoformat() + "Z",
             # "embedding": embedding  # Disabled
         }
 

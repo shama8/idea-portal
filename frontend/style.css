@@ -119,3 +119,23 @@ h1, h2 {
         margin: 0 0 1rem;
     }
 }
+.card-text.clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;  /* for WebKit browsers */
+  -webkit-box-orient: vertical;
+  
+  line-clamp: 2;          /* Standard property */
+  box-orient: vertical;   /* Standard property */
+  white-space: normal; /* allow wrapping */
+}
+
+
+.idea-card {
+  cursor: pointer;
+}
+#modalDescription {
+  word-break: break-word; /* or break-all */
+  overflow-wrap: break-word;
+  white-space: normal;
+}
