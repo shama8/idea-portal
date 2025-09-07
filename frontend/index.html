@@ -11,7 +11,21 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="login-background"></div>
+  <!-- Background -->
+  <div id="login-background" class="paused"></div>
+
+  <!-- Animation Toggle Switch -->
+  <!-- Physical-style Switch -->
+<div class="physical-wall-switch-container position-absolute top-0 end-0 m-3 z-3 text-dark d-flex flex-column align-items-center">
+  <label class="physical-wall-switch-vertical">
+    <input type="checkbox" id="animationToggle" />
+    <span class="switch-lever-vertical"></span>
+  </label>
+  <span class="fw-semibold mt-2 text-white">Animate</span>
+</div>
+
+
+  <!-- Login Form -->
   <div class="container py-5">
     <h2 class="text-center mb-4">Login</h2>
 
@@ -38,7 +52,7 @@
       window.location.href = "dashboard.html";
     }
 
-    // Handle login form submission
+    // Handle login
     document.getElementById("loginForm").addEventListener("submit", function(event) {
       event.preventDefault();
       const usernameInput = document.getElementById("username").value.trim();
@@ -51,6 +65,17 @@
       localStorage.setItem("loggedIn", "true");
       localStorage.setItem("username", usernameInput);
       window.location.href = "dashboard.html";
+    });
+
+    // Background animation toggle logic
+    const toggleSwitch = document.getElementById("animationToggle");
+    const loginBg = document.getElementById("login-background");
+
+    // Ensure it starts paused
+    loginBg.classList.add("paused");
+
+    toggleSwitch.addEventListener("change", () => {
+      loginBg.classList.toggle("paused");
     });
   </script>
 </body>

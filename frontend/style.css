@@ -139,3 +139,76 @@ h1, h2 {
   overflow-wrap: break-word;
   white-space: normal;
 }
+.physical-wall-switch-container {
+  user-select: none;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  /* NO background color here */
+}
+
+/* Vertical base plate */
+.physical-wall-switch-vertical {
+  position: relative;
+  width: 36px;
+  height: 60px;
+  background: linear-gradient(145deg, #ddd, #bbb);
+  border-radius: 6px;
+  box-shadow:
+    inset 2px 2px 5px #eee,
+    inset -2px -2px 5px #999,
+    2px 2px 5px rgba(0,0,0,0.15);
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Hide native checkbox */
+.physical-wall-switch-vertical input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+/* The vertical toggle lever */
+.switch-lever-vertical {
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  width: 28px;
+  height: 24px;
+  background: linear-gradient(145deg, #fff, #ccc);
+  border-radius: 4px;
+  box-shadow:
+    0 4px 6px rgba(0,0,0,0.3),
+    inset 1px 1px 2px #fff,
+    inset -1px -1px 2px #999;
+  transform: translateY(-50%) translateX(4px);
+  transition: transform 0.3s ease;
+  transform-origin: bottom center;
+}
+
+/* Lever position when unchecked (down) */
+.physical-wall-switch-vertical input:not(:checked) + .switch-lever-vertical {
+  transform: translateY(-50%) translateX(4px) rotate(0deg);
+  box-shadow:
+    0 4px 6px rgba(0,0,0,0.3),
+    inset 1px 1px 2px #fff,
+    inset -1px -1px 2px #999;
+  background: linear-gradient(145deg, #fff, #ccc);
+}
+
+/* Lever position when checked (flipped up) */
+.physical-wall-switch-vertical input:checked + .switch-lever-vertical {
+  transform: translateY(-50%) translateX(-8px) rotate(-35deg);
+  box-shadow:
+    0 6px 8px rgba(0,0,0,0.4),
+    inset 1px 1px 2px #fff,
+    inset -1px -1px 2px #666;
+  background: linear-gradient(145deg, #e0ffe0, #a0b5dc);
+}
+/* This class actually pauses the animation */
+#login-background.paused {
+  animation-play-state: paused !important;
+}
