@@ -1,24 +1,5 @@
 [
   {
-    "id": 1,
-    "title": "Test",
-    "description": "This is a test idea submission",
-    "category": "A",
-    "impact": "Low",
-    "author": "Shama",
-    "embedding": null
-  },
-  {
-    "id": 2,
-    "title": "Test",
-    "description": "Dashboard creation",
-    "category": "B",
-    "impact": "High",
-    "author": "Shama",
-    "date_submitted": "2025-09-05T06:36:18.819679Z",
-    "embedding": null
-  },
-  {
     "id": 3,
     "title": "Test",
     "description": "Testing",
@@ -26,16 +7,6 @@
     "impact": "Low",
     "author": "Shama",
     "date_submitted": "2025-09-05T06:36:53.808334Z",
-    "embedding": null
-  },
-  {
-    "id": 4,
-    "title": "Test",
-    "description": "Test",
-    "category": "D",
-    "impact": "Low",
-    "author": "Shama",
-    "date_submitted": "2025-09-05T06:37:10.435474Z",
     "embedding": null
   },
   {
@@ -67,14 +38,5 @@
     "author": "Shama",
     "date_submitted": "2025-09-05T06:52:16.378930Z",
     "embedding": null
-  },
-  {
-    "id": 8,
-    "title": "AAA",
-    "description": "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
-    "category": "N",
-    "impact": "Low",
-    "author": "Shama",
-    "date_submitted": "2025-09-05T06:54:33.445842Z"
   }
 ]

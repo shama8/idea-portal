@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from functools import wraps
 from flask_cors import CORS
 from datetime import datetime
 # from embeddings import get_embedding, cosine_similarity  # 🔒 Temporarily disabled
@@ -7,6 +8,18 @@ import os
 import numpy as np
 
 app = Flask(__name__)
+
+SUPERADMIN_USERNAME = os.environ.get("SUPERADMIN_USERNAME", "Shama08")
+
+def superadmin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        data = request.get_json(silent=True) or {}
+        username = data.get("username") or request.args.get("username")
+        if username != SUPERADMIN_USERNAME:
+            return jsonify({"error": "Unauthorized. Superadmin access only."}), 401
+        return f(*args, **kwargs)
+    return decorated
 
 CORS(
     app,
@@ -124,6 +137,7 @@ def add_idea():
 #         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 @app.route('/api/delete-idea/<int:idea_id>', methods=['DELETE'])
+@superadmin_required
 def delete_idea(idea_id):
     ideas = load_ideas()
     filtered_ideas = [idea for idea in ideas if idea.get("id") != idea_id]

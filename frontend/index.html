@@ -7,7 +7,7 @@
 
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -47,36 +47,44 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // Redirect to dashboard if already logged in
-    if (localStorage.getItem("loggedIn") === "true") {
-      window.location.href = "dashboard.html";
+  // Redirect to dashboard if already logged in
+  if (localStorage.getItem("loggedIn") === "true") {
+    window.location.href = "dashboard.html";
+  }
+
+  // Handle login
+  document.getElementById("loginForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+    const usernameInput = document.getElementById("username").value.trim();
+
+    if (!usernameInput) {
+      alert("Please enter a username");
+      return;
     }
 
-    // Handle login
-    document.getElementById("loginForm").addEventListener("submit", function(event) {
-      event.preventDefault();
-      const usernameInput = document.getElementById("username").value.trim();
+    localStorage.setItem("loggedIn", "true");
+    localStorage.setItem("username", usernameInput);
 
-      if (!usernameInput) {
-        alert("Please enter a username");
-        return;
-      }
+    // Flag superadmin
+    if (usernameInput === "Shama08") {
+      localStorage.setItem("isSuperadmin", "true");
+    } else {
+      localStorage.setItem("isSuperadmin", "false");
+    }
 
-      localStorage.setItem("loggedIn", "true");
-      localStorage.setItem("username", usernameInput);
-      window.location.href = "dashboard.html";
-    });
+    window.location.href = "dashboard.html";
+  });
 
-    // Background animation toggle logic
-    const toggleSwitch = document.getElementById("animationToggle");
-    const loginBg = document.getElementById("login-background");
+  // Background animation toggle logic
+  const toggleSwitch = document.getElementById("animationToggle");
+  const loginBg = document.getElementById("login-background");
 
-    // Ensure it starts paused
-    loginBg.classList.add("paused");
+  // Ensure it starts paused
+  loginBg.classList.add("paused");
 
-    toggleSwitch.addEventListener("change", () => {
-      loginBg.classList.toggle("paused");
-    });
-  </script>
+  toggleSwitch.addEventListener("change", () => {
+    loginBg.classList.toggle("paused");
+  });
+</script>
 </body>
 </html>
