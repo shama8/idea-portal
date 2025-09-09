@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Add Idea - Idea Portal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 </head>
@@ -29,15 +28,36 @@
         <label for="ideaImpact" class="form-label">Impact Level</label>
         <select id="ideaImpact" class="form-select">
           <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
+          <option value="Medium" selected>Medium</option>
           <option value="High">High</option>
         </select>
       </div>
       <div class="text-center">
-        <button type="submit" class="btn btn-success">Submit Idea</button>
+        <button type="submit" class="btn btn-success" id="submitBtn">Submit Idea</button>
       </div>
     </form>
   </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="feedbackModalLabel">Notification</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="feedbackModalBody">
+          <!-- Message goes here -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="modalOkButton" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS (for modals) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
     // Redirect if not logged in
@@ -45,81 +65,67 @@
       window.location.href = "index.html";
     }
 
-    // Dynamic API base URL
     const API_BASE_URL = window.location.hostname === "localhost"
       ? "http://localhost:5000"
       : "https://idea-portal-1.onrender.com";
 
+    const feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+    const feedbackModalTitle = document.getElementById('feedbackModalLabel');
+    const feedbackModalBody = document.getElementById('feedbackModalBody');
+    const modalOkButton = document.getElementById('modalOkButton');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function showModal(message, callback = null, title = "Notification") {
+      feedbackModalTitle.textContent = title;
+      feedbackModalBody.textContent = message;
+      feedbackModal.show();
+
+      const handler = () => {
+        if (callback) callback();
+        modalOkButton.removeEventListener("click", handler);
+      };
+
+      modalOkButton.addEventListener("click", handler);
+    }
+
     document.getElementById("ideaForm").addEventListener("submit", async function (e) {
       e.preventDefault();
-
-      const title = document.getElementById("ideaTitle").value.trim();
-      const description = document.getElementById("ideaDescription").value.trim();
-      const category = document.getElementById("ideaCategory").value.trim();
-      const impact = document.getElementById("ideaImpact").value;
-
-      // Get author from localStorage
-      const author = localStorage.getItem("username") || "Unknown";
-
-      // -- COMMENTED OUT SIMILARITY CHECK --
-      /*
-      const fullText = `${title}. ${description}`;
+      submitBtn.disabled = true;
 
       try {
-        const simResponse = await fetch(`${API_BASE_URL}/api/similar-ideas`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: fullText }),
-        });
+        const title = document.getElementById("ideaTitle").value.trim();
+        const description = document.getElementById("ideaDescription").value.trim();
+        const category = document.getElementById("ideaCategory").value.trim();
+        const impact = document.getElementById("ideaImpact").value;
+        const author = localStorage.getItem("username") || "Unknown";
 
-        const simData = await simResponse.json();
-
-        if (simData.error) {
-          alert(simData.error);
-          return;
-        }
-
-        if (!simData.matches || simData.matches.length === 0) {
-          await submitIdea(title, description, category, impact, author);
-          return;
-        }
-
-        let message = "Top similar ideas:\n\n";
-        simData.matches.forEach(match => {
-          message += `- ${match.text} (Score: ${match.similarity})\n`;
-        });
-        message += "\nDo you still want to submit this idea?";
-
-        if (confirm(message)) {
-          await submitIdea(title, description, category, impact, author);
-        }
-
-      } catch (error) {
-        console.error("Error:", error);
-        alert("An error occurred. Please try again.");
+        await submitIdea(title, description, category, impact, author);
+      } finally {
+        submitBtn.disabled = false;
       }
-      */
-
-      // Directly submit without similarity check
-      await submitIdea(title, description, category, impact, author);
     });
 
     async function submitIdea(title, description, category, impact, author) {
-      const addResponse = await fetch(`${API_BASE_URL}/api/add-idea`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description, category, impact, author }),
-      });
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/add-idea`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, description, category, impact, author }),
+        });
 
-      const addData = await addResponse.json();
+        const data = await response.json();
 
-      if (addData.error) {
-        alert(addData.error);
-        return;
+        if (response.ok && !data.error) {
+          showModal("Idea submitted successfully!", () => {
+            window.location.href = "dashboard.html";
+          }, "Success");
+        } else {
+          showModal(data.error || "Failed to submit idea.", null, "Error");
+        }
+      } catch (error) {
+        console.error("Submission Error:", error);
+        showModal("An unexpected error occurred. Please try again later.", null, "Error");
       }
-
-      alert("Idea submitted successfully!");
-      window.location.href = "dashboard.html";
     }
   </script>
 </body>

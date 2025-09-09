@@ -63,16 +63,24 @@
     }
 
     localStorage.setItem("loggedIn", "true");
-    localStorage.setItem("username", usernameInput);
+localStorage.setItem("username", usernameInput);
 
-    // Flag superadmin
-    if (usernameInput === "Shama08") {
-      localStorage.setItem("isSuperadmin", "true");
-    } else {
-      localStorage.setItem("isSuperadmin", "false");
-    }
+// Flag superadmin
+if (usernameInput === "Shama08") {
+  localStorage.setItem("isSuperadmin", "true");
+} else {
+  localStorage.setItem("isSuperadmin", "false");
+}
 
-    window.location.href = "dashboard.html";
+// Set user number only if not already set
+if (!localStorage.getItem("userNumber")) {
+  let globalCount = parseInt(localStorage.getItem("globalUserCount") || "0", 10);
+  globalCount++;
+  localStorage.setItem("globalUserCount", globalCount);
+  localStorage.setItem("userNumber", globalCount);
+}
+
+window.location.href = "dashboard.html";
   });
 
   // Background animation toggle logic
