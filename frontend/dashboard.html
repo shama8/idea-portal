@@ -25,12 +25,13 @@
 <body>
   <div class="container py-4">
     <div class="alert alert-warning text-center py-2 px-3 small compact-alert mb-3" role="alert">
-  ⚠️ Ideas are <strong>temporarily stored</strong> and may be <strong>refreshed on server restart</strong>.
-</div>
-<!-- Welcome Message -->
-<div class="mb-3">
-  <h5 id="welcomeMessage" class="text-primary fw-semibold"></h5>
-</div>
+      ⚠️ Ideas are <strong>temporarily stored</strong> and may be <strong>refreshed on server restart</strong>.
+    </div>
+
+    <div class="mb-3">
+      <h5 id="welcomeMessage" class="text-primary fw-semibold"></h5>
+    </div>
+
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2 class="mb-0">Idea Dashboard</h2>
       <div>
@@ -40,8 +41,6 @@
     </div>
 
     <div id="ideaList" class="row g-4"></div>
-
-    <!-- Pagination -->
     <div class="d-flex justify-content-center mt-4" id="paginationControls"></div>
   </div>
 
@@ -88,22 +87,33 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
-        const username = localStorage.getItem("username") || "Guest";
-const userNumber = localStorage.getItem("userNumber") || "?";
+      const username = localStorage.getItem("username") || "Guest";
 
-const welcomeMessage = `Hey ${username}!<br><br>You are the ${userNumber}${getOrdinalSuffix(userNumber)} user who may log a life-changing idea!`;
-document.getElementById("welcomeMessage").innerHTML = welcomeMessage;
+let knownUsers = JSON.parse(localStorage.getItem("knownUsers")) || [];
 
-function getOrdinalSuffix(n) {
-  const num = parseInt(n, 10);
-  if (isNaN(num)) return "";
-  const j = num % 10,
-        k = num % 100;
-  if (j === 1 && k !== 11) return "st";
-  if (j === 2 && k !== 12) return "nd";
-  if (j === 3 && k !== 13) return "rd";
-  return "th";
+let userNumber;
+if (!knownUsers.includes(username)) {
+  knownUsers.push(username);
+  localStorage.setItem("knownUsers", JSON.stringify(knownUsers));
 }
+
+userNumber = knownUsers.indexOf(username) + 1;
+localStorage.setItem("userNumber", userNumber);
+
+
+      const welcomeMessage = `Hey ${username}, <br><br>You are the ${userNumber}${getOrdinalSuffix(userNumber)} user here who may log a life-changing idea. Go ahead!!!`;
+      document.getElementById("welcomeMessage").innerHTML = welcomeMessage;
+
+      function getOrdinalSuffix(n) {
+        const num = parseInt(n, 10);
+        if (isNaN(num)) return "";
+        const j = num % 10, k = num % 100;
+        if (j === 1 && k !== 11) return "st";
+        if (j === 2 && k !== 12) return "nd";
+        if (j === 3 && k !== 13) return "rd";
+        return "th";
+      }
+
       const isLoggedIn = localStorage.getItem("loggedIn");
       if (!isLoggedIn) {
         window.location.href = "index.html";
@@ -127,19 +137,18 @@ function getOrdinalSuffix(n) {
       const feedbackModalTitle = document.getElementById('feedbackModalLabel');
       const modalOkButton = document.getElementById('modalOkButton');
 
+      // --- MODAL HELPERS ---
       function showModal(message, callback = null, disableOk = false, title = "Notification") {
         feedbackModalTitle.textContent = title;
         feedbackModalBody.textContent = message;
         modalOkButton.disabled = !!disableOk;
-        feedbackModal.show();
 
-        const handler = () => {
+        modalOkButton.onclick = () => {
+          feedbackModal.hide();
           if (callback) callback();
-          modalOkButton.removeEventListener("click", handler);
-          modalOkButton.disabled = false;
         };
 
-        modalOkButton.addEventListener("click", handler);
+        feedbackModal.show();
       }
 
       function showConfirm(message) {
@@ -148,38 +157,44 @@ function getOrdinalSuffix(n) {
           feedbackModalBody.textContent = message;
           modalOkButton.textContent = "Yes";
 
-          const cancelBtn = document.createElement("button");
-          cancelBtn.className = "btn btn-secondary";
-          cancelBtn.textContent = "Cancel";
-          cancelBtn.setAttribute("data-bs-dismiss", "modal");
-
-          const footer = modalOkButton.parentElement;
-          footer.insertBefore(cancelBtn, modalOkButton);
+          let cancelBtn = document.getElementById("cancelConfirmBtn");
+          if (!cancelBtn) {
+            cancelBtn = document.createElement("button");
+            cancelBtn.id = "cancelConfirmBtn";
+            cancelBtn.className = "btn btn-secondary";
+            cancelBtn.textContent = "Cancel";
+            cancelBtn.setAttribute("type", "button");
+            cancelBtn.setAttribute("data-bs-dismiss", "modal");
+            modalOkButton.parentElement.insertBefore(cancelBtn, modalOkButton);
+          }
 
           const cleanup = () => {
-            cancelBtn.remove();
+            feedbackModal.hide();
             modalOkButton.textContent = "OK";
-            modalOkButton.removeEventListener("click", onConfirm);
-            cancelBtn.removeEventListener("click", onCancel);
+            modalOkButton.onclick = null;
+            cancelBtn.remove();
+            setTimeout(() => {
+              document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+              document.body.classList.remove("modal-open");
+              document.body.style = '';
+            }, 200);
           };
 
-          const onConfirm = () => {
+          modalOkButton.onclick = () => {
             cleanup();
             resolve(true);
           };
 
-          const onCancel = () => {
+          cancelBtn.onclick = () => {
             cleanup();
             resolve(false);
           };
-
-          modalOkButton.addEventListener("click", onConfirm);
-          cancelBtn.addEventListener("click", onCancel);
 
           feedbackModal.show();
         });
       }
 
+      // --- RENDER FUNCTIONS ---
       function formatDate(dateStr) {
         if (!dateStr) return '';
         const date = new Date(dateStr);
@@ -346,7 +361,7 @@ function getOrdinalSuffix(n) {
 
           const data = await res.json();
           if (res.ok) {
-            showModal("Idea deleted successfully.", loadIdeas, false, "Notification");
+            showModal("Idea deleted successfully!", loadIdeas, false, "Success");
           } else {
             showModal(data.error || "Failed to delete idea.", null, false, "Error");
           }
@@ -364,6 +379,13 @@ function getOrdinalSuffix(n) {
         localStorage.removeItem("username");
         localStorage.removeItem("isSuperadmin");
         window.location.href = "index.html";
+      });
+
+      // Global safeguard: remove backdrops after modal closes
+      document.addEventListener('hidden.bs.modal', () => {
+        document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+        document.body.classList.remove("modal-open");
+        document.body.style = '';
       });
     });
   </script>
