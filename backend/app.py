@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from functools import wraps
 from flask_cors import CORS
 from datetime import datetime
+from flask import make_response
 # from embeddings import get_embedding, cosine_similarity  # 🔒 Temporarily disabled
 import json
 import os
@@ -155,7 +156,10 @@ def get_all_ideas():
         ideas_no_embeddings = [
             {k: v for k, v in idea.items() if k != "embedding"} for idea in ideas
         ]
-        return jsonify(ideas_no_embeddings)
+        response = make_response(jsonify(ideas_no_embeddings))
+        # Prevent caching to ensure fresh data on each request
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        return response
     except Exception as e:
         app.logger.exception("Error in /api/all-ideas")
         return jsonify({"error": "Internal Server Error"}), 500

@@ -40,6 +40,21 @@
       </div>
     </div>
 
+    <!-- SEARCH & FILTER SECTION -->
+    <div class="row mb-4 g-3 align-items-center">
+      <div class="col-md-6">
+        <input id="searchInput" type="text" class="form-control" placeholder="Search ideas by keyword..." aria-label="Search ideas" />
+      </div>
+      <div class="col-md-4">
+        <select id="categoryFilter" class="form-select" aria-label="Filter by category">
+          <option value="">All Categories</option>
+          <!-- Dynamically populated -->
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button id="clearFiltersBtn" class="btn btn-secondary w-100">Clear</button>
+      </div>
+    </div>
     <div id="ideaList" class="row g-4"></div>
     <div class="d-flex justify-content-center mt-4" id="paginationControls"></div>
   </div>
@@ -89,17 +104,16 @@
     document.addEventListener("DOMContentLoaded", async () => {
       const username = localStorage.getItem("username") || "Guest";
 
-let knownUsers = JSON.parse(localStorage.getItem("knownUsers")) || [];
+      let knownUsers = JSON.parse(localStorage.getItem("knownUsers")) || [];
 
-let userNumber;
-if (!knownUsers.includes(username)) {
-  knownUsers.push(username);
-  localStorage.setItem("knownUsers", JSON.stringify(knownUsers));
-}
+      let userNumber;
+      if (!knownUsers.includes(username)) {
+        knownUsers.push(username);
+        localStorage.setItem("knownUsers", JSON.stringify(knownUsers));
+      }
 
-userNumber = knownUsers.indexOf(username) + 1;
-localStorage.setItem("userNumber", userNumber);
-
+      userNumber = knownUsers.indexOf(username) + 1;
+      localStorage.setItem("userNumber", userNumber);
 
       const welcomeMessage = `Hey ${username}, <br><br>You are the ${userNumber}${getOrdinalSuffix(userNumber)} user here who may log a life-changing idea. Go ahead!!!`;
       document.getElementById("welcomeMessage").innerHTML = welcomeMessage;
@@ -126,10 +140,14 @@ localStorage.setItem("userNumber", userNumber);
 
       const ideaListContainer = document.getElementById("ideaList");
       const paginationControls = document.getElementById("paginationControls");
+      const searchInput = document.getElementById("searchInput");
+      const categoryFilter = document.getElementById("categoryFilter");
+      const clearFiltersBtn = document.getElementById("clearFiltersBtn");
 
       const ITEMS_PER_PAGE = 6;
       let currentPage = 1;
       let ideas = [];
+      let filteredIdeas = [];
 
       const feedbackModalElem = document.getElementById('feedbackModal');
       const feedbackModal = new bootstrap.Modal(feedbackModalElem);
@@ -218,7 +236,7 @@ localStorage.setItem("userNumber", userNumber);
           if (currentPage > 1) {
             currentPage--;
             renderIdeas();
-            renderPagination(ideas.length);
+            renderPagination(filteredIdeas.length);
           }
         });
         paginationControls.appendChild(prevBtn);
@@ -230,7 +248,7 @@ localStorage.setItem("userNumber", userNumber);
           btn.addEventListener("click", () => {
             currentPage = i;
             renderIdeas();
-            renderPagination(ideas.length);
+            renderPagination(filteredIdeas.length);
           });
           paginationControls.appendChild(btn);
         }
@@ -243,7 +261,7 @@ localStorage.setItem("userNumber", userNumber);
           if (currentPage < totalPages) {
             currentPage++;
             renderIdeas();
-            renderPagination(ideas.length);
+            renderPagination(filteredIdeas.length);
           }
         });
         paginationControls.appendChild(nextBtn);
@@ -252,17 +270,17 @@ localStorage.setItem("userNumber", userNumber);
       function renderIdeas() {
         ideaListContainer.innerHTML = "";
 
-        if (!Array.isArray(ideas) || ideas.length === 0) {
+        if (!Array.isArray(filteredIdeas) || filteredIdeas.length === 0) {
           ideaListContainer.innerHTML = `
             <div class="col-12">
-              <div class="alert alert-info text-center">No ideas submitted yet.</div>
+              <div class="alert alert-info text-center">No ideas found.</div>
             </div>
           `;
           return;
         }
 
         const start = (currentPage - 1) * ITEMS_PER_PAGE;
-        const paginatedIdeas = ideas.slice(start, start + ITEMS_PER_PAGE);
+        const paginatedIdeas = filteredIdeas.slice(start, start + ITEMS_PER_PAGE);
 
         paginatedIdeas.forEach(idea => {
           const col = document.createElement("div");
@@ -305,15 +323,52 @@ localStorage.setItem("userNumber", userNumber);
         new bootstrap.Modal(document.getElementById("ideaModal")).show();
       }
 
+      // --- FILTER LOGIC ---
+      function applyFilters() {
+        const keyword = searchInput.value.trim().toLowerCase();
+        const selectedCategory = categoryFilter.value;
+
+        filteredIdeas = ideas.filter(idea => {
+          const matchesKeyword = 
+            idea.title.toLowerCase().includes(keyword) ||
+            idea.description.toLowerCase().includes(keyword) ||
+            (idea.category && idea.category.toLowerCase().includes(keyword)) ||
+            (idea.impact && idea.impact.toLowerCase().includes(keyword)) ||
+            (idea.author && idea.author.toLowerCase().includes(keyword));
+          const matchesCategory = selectedCategory === "" || idea.category === selectedCategory;
+
+          return matchesKeyword && matchesCategory;
+        });
+
+        currentPage = 1;
+        renderIdeas();
+        renderPagination(filteredIdeas.length);
+      }
+
+      function populateCategoryFilter() {
+        const categories = [...new Set(ideas.map(i => i.category).filter(c => c && c.trim() !== ""))].sort();
+        categoryFilter.innerHTML = '<option value="">All Categories</option>';
+        categories.forEach(cat => {
+          const option = document.createElement("option");
+          option.value = cat;
+          option.textContent = cat;
+          categoryFilter.appendChild(option);
+        });
+      }
+
       async function loadIdeas() {
         try {
           const response = await fetch(`${API_BASE_URL}/api/all-ideas`);
           if (!response.ok) throw new Error("Failed to load ideas.");
 
           ideas = await response.json();
+
+          populateCategoryFilter();
+
+          filteredIdeas = [...ideas];
           currentPage = 1;
           renderIdeas();
-          renderPagination(ideas.length);
+          renderPagination(filteredIdeas.length);
 
         } catch (error) {
           console.error("Error fetching ideas:", error);
@@ -361,7 +416,10 @@ localStorage.setItem("userNumber", userNumber);
 
           const data = await res.json();
           if (res.ok) {
-            showModal("Idea deleted successfully!", loadIdeas, false, "Success");
+            showModal("Idea deleted successfully!", async () => {
+              await loadIdeas();
+              applyFilters();
+            }, false, "Success");
           } else {
             showModal(data.error || "Failed to delete idea.", null, false, "Error");
           }
@@ -370,6 +428,20 @@ localStorage.setItem("userNumber", userNumber);
           console.error("Delete failed:", err);
           showModal("An error occurred. Please try again.", null, false, "Error");
         }
+      });
+
+      searchInput.addEventListener("input", () => {
+        applyFilters();
+      });
+
+      categoryFilter.addEventListener("change", () => {
+        applyFilters();
+      });
+
+      clearFiltersBtn.addEventListener("click", () => {
+        searchInput.value = "";
+        categoryFilter.value = "";
+        applyFilters();
       });
 
       await loadIdeas();
