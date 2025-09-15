@@ -1,1 +1,78 @@
-[]
+[
+  {
+    "id": 1,
+    "title": "Dashboard",
+    "description": "I wanna create dashboard",
+    "category": "Visualisation",
+    "impact": "Medium",
+    "author": "Rani",
+    "date_submitted": "2025-09-11T09:23:51.813075Z",
+    "embedding": null
+  },
+  {
+    "id": 2,
+    "title": "Portal",
+    "description": "Ticket management forum",
+    "category": "Servicedesk",
+    "impact": "High",
+    "author": "Rani",
+    "date_submitted": "2025-09-11T09:24:38.097633Z",
+    "embedding": null
+  },
+  {
+    "id": 3,
+    "title": "Bot",
+    "description": "I want to create bot for the dashboard page",
+    "category": "Visualisation",
+    "impact": "Low",
+    "author": "Perumal",
+    "date_submitted": "2025-09-11T09:25:26.346869Z",
+    "embedding": null
+  },
+  {
+    "id": 4,
+    "title": "Mobile responsiveness",
+    "description": "Want to make the website mobile responsive",
+    "category": "Usability",
+    "impact": "High",
+    "author": "Perumal",
+    "date_submitted": "2025-09-11T09:26:08.840874Z",
+    "embedding": null
+  },
+  {
+    "id": 5,
+    "title": "Authentication",
+    "description": "To be able to provide secure authentication",
+    "category": "Security",
+    "impact": "High",
+    "author": "Joseph",
+    "date_submitted": "2025-09-11T09:27:45.618425Z",
+    "embedding": null
+  },
+  {
+    "id": 6,
+    "title": "Compliance",
+    "description": "To ensure standard compliance",
+    "category": "Security",
+    "impact": "Medium",
+    "author": "Joseph",
+    "date_submitted": "2025-09-11T09:29:07.353682Z",
+    "embedding": null
+  },
+  {
+    "id": 7,
+    "title": "Documentation",
+    "description": "Automatic documentation",
+    "category": "Innovation",
+    "impact": "Medium",
+    "author": "Joseph",
+    "date_submitted": "2025-09-11T09:30:12.597094Z"
+  },
+  {
+    "title": "Dashboard",
+    "description": "I wanna create dasboard",
+    "category": "Visualisation",
+    "impact": "Low",
+    "author": "Shama08"
+  }
+]

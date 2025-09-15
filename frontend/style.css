@@ -119,15 +119,46 @@ h1, h2 {
         margin: 0 0 1rem;
     }
 }
+.card-body {
+  position: relative; /* optional for stacking context */
+}
+
+.card-title.clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;      /* clamp to 2 lines */
+  line-clamp: 2;              /* standard property for compatibility */
+  -webkit-box-orient: vertical;
+  min-height: 2.7em;   /* 2 lines x 1.4em line-height */
+  line-height: 1.4em;
+  max-height: calc(1.4em * 2);
+}
 .card-text.clamp-2 {
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 2;  /* for WebKit browsers */
+  -webkit-line-clamp: 2;      /* clamp to 2 lines */
+  line-clamp: 2;              /* standard property for compatibility */
   -webkit-box-orient: vertical;
-  
-  line-clamp: 2;          /* Standard property */
-  box-orient: vertical;   /* Standard property */
-  white-space: normal; /* allow wrapping */
+  min-height: 2.7em;   /* same as above for 2 lines */
+  line-height: 1.4em;
+  max-height: calc(1.4em * 2);
+}
+.delete-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  z-index: 10;
+  padding: 4px 4px;
+  font-size: 16px;
+  color: #dc3545;
+  background: #fff;
+  border-radius: 6px;
+  transition: transform 0.2s;
+}
+
+.delete-btn:hover,.delete-btn:focus {
+  background-color: #f8d7da;
+  transform: scale(1.1);
 }
 
 
@@ -225,3 +256,51 @@ h1, h2 {
   align-items: flex-start; /* ✅ avoids stretching items */
 }
 
+/* === Similar Ideas Warning Modal === */
+.similar-warning-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1050;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5); /* dark overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.similar-warning-content {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  overflow-y: auto;
+  max-height: 80vh;
+}
+
+.similar-warning-content h3 {
+  margin-top: 0;
+  color: #dc3545;
+}
+
+.similar-warning-content .match-item {
+  border-left: 4px solid #ffc107;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.similar-warning-content .match-item p {
+  margin: 0.25rem 0;
+}
+
+.similar-warning-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  gap: 0.75rem;
+}

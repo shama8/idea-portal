@@ -3,7 +3,7 @@ from functools import wraps
 from flask_cors import CORS
 from datetime import datetime
 from flask import make_response
-# from embeddings import get_embedding, cosine_similarity  # 🔒 Temporarily disabled
+from embeddings import get_embedding, cosine_similarity 
 import json
 import os
 import numpy as np
@@ -78,14 +78,41 @@ def add_idea():
     category = data.get("category", "")
     impact = data.get("impact", "")
     author = data.get("author", "Unknown")
+    force = data.get("force", False)
 
     if not title or not description:
         return jsonify({"error": "Title and description are required"}), 400
 
     try:
-        # embedding = get_embedding(f"{title}. {description}")  # Disabled
+        input_text = f"{title}. {description}"
+        embedding = get_embedding(input_text)
 
-        ideas = load_ideas(include_embeddings=True)
+        if not force:
+            # Check for similar ideas first
+            ideas = load_ideas()
+            SIMILARITY_THRESHOLD = 0.75
+            matches = []
+
+            for idea in ideas:
+                if idea.get("embedding") is None:
+                    continue
+                score = cosine_similarity(embedding, idea["embedding"])
+                if score >= SIMILARITY_THRESHOLD:
+                    matches.append({
+                        "id": idea["id"],
+                        "title": idea["title"],
+                        "description": idea["description"],
+                        "similarity score": round(score, 3)
+                    })
+
+            if matches:
+                matches.sort(key=lambda x: x["similarity score"], reverse=True)
+                return jsonify({
+                    "warning": "Similar idea(s) found",
+                    "matches": matches[:3]  # Show top 3 matches
+                }), 409  # Conflict
+
+        ideas = load_ideas()
         new_id = max([idea.get("id", 0) for idea in ideas] + [0]) + 1
 
         new_idea = {
@@ -95,8 +122,8 @@ def add_idea():
             "category": category,
             "impact": impact,
             "author": author,
-             "date_submitted": datetime.utcnow().isoformat() + "Z",
-            # "embedding": embedding  # Disabled
+            "date_submitted": datetime.utcnow().isoformat() + "Z",
+            "embedding": embedding
         }
 
         ideas.append(new_idea)
@@ -107,35 +134,40 @@ def add_idea():
     except Exception as e:
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
-# @app.route('/api/similar-ideas', methods=['POST'])
-# def find_similar():
-#     data = request.get_json()
-#     input_text = data.get("text")
-#
-#     if not input_text:
-#         return jsonify({"error": "Missing text"}), 400
-#
-#     try:
-#         input_embedding = get_embedding(input_text)
-#         ideas = load_ideas()
-#
-#         SIMILARITY_THRESHOLD = 0.75
-#
-#         results = []
-#         for idea in ideas:
-#             score = cosine_similarity(input_embedding, idea["embedding"])
-#             if score >= SIMILARITY_THRESHOLD:
-#                 results.append({
-#                     "id": idea.get("id"),
-#                     "text": f"{idea['title']}. {idea['description']}",
-#                     "similarity": round(score, 3)
-#                 })
-#
-#         results.sort(key=lambda x: x["similarity"], reverse=True)
-#         return jsonify({"input": input_text, "matches": results[:3]})
-#
-#     except Exception as e:
-#         return jsonify({"error": f"Server error: {str(e)}"}), 500
+@app.route('/api/similar-ideas', methods=['POST'])
+def find_similar():
+    data = request.get_json()
+    title = data.get("title")
+    description = data.get("description")
+
+    if not title or not description:
+        return jsonify({"error": "Title and description are required"}), 400
+
+    try:
+        input_text = f"{title}. {description}"
+        input_embedding = get_embedding(input_text)
+        ideas = load_ideas()
+
+        SIMILARITY_THRESHOLD = 0.75
+        results = []
+
+        for idea in ideas:
+            if idea.get("embedding") is None:
+                continue
+            score = cosine_similarity(input_embedding, idea["embedding"])
+            if score >= SIMILARITY_THRESHOLD:
+                results.append({
+                    "id": idea.get("id"),
+                    "title": idea.get("title"),
+                    "description": idea.get("description"),
+                    "similarity score": round(score, 3)
+                })
+
+        results.sort(key=lambda x: x["similarity score"], reverse=True)
+        return jsonify({"matches": results[:3]})  # Return top 3 matches
+
+    except Exception as e:
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 @app.route('/api/delete-idea/<int:idea_id>', methods=['DELETE'])
 @superadmin_required

@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const currentUsername = localStorage.getItem("username") || "";  // Assume login stored username
+  const currentUsername = localStorage.getItem("username") || "";
+  const SUPERADMIN_USERNAME = "Shama08";  // Change as needed
 
-  // Handle login form submission
   const loginForm = document.getElementById('loginForm');
   if (loginForm) {
     loginForm.addEventListener('submit', function (e) {
@@ -9,17 +9,16 @@ document.addEventListener('DOMContentLoaded', function () {
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();
 
-      // Dummy validation
       if (username === 'admin' && password === 'admin') {
-        localStorage.setItem("username", username);  // Store for later
+        localStorage.setItem("username", username);
         alert('Login successful!');
+        location.reload();
       } else {
-        alert('Invalid credentials. Try admin/admin.');
+        alert("Invalid credentials.");
       }
     });
   }
 
-  // Handle idea form submission
   const ideaForm = document.getElementById('ideaForm');
   if (ideaForm) {
     ideaForm.addEventListener('submit', function (e) {
@@ -43,49 +42,65 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(response => {
           if (response.ok) {
             alert('Idea submitted successfully!');
-            document.getElementById('ideaForm').reset();
+            ideaForm.reset();
             loadIdeas();
           } else {
             alert('Failed to submit idea.');
           }
+        })
+        .catch(err => {
+          console.error("Error submitting idea:", err);
+          alert('Error submitting idea.');
         });
     });
   }
 
-  // Load ideas from server
   function loadIdeas() {
+    const ideaList = document.getElementById('ideaList');
+    if (!ideaList) return;
+
     fetch('/ideas')
       .then(response => response.json())
       .then(data => {
-        const ideaList = document.getElementById('ideaList');
         ideaList.innerHTML = '';
+
+        if (!Array.isArray(data) || data.length === 0) {
+          ideaList.innerHTML = `
+            <div class="col-12">
+              <div class="alert alert-info text-center">No ideas submitted yet.</div>
+            </div>
+          `;
+          return;
+        }
 
         data.forEach((idea) => {
           const card = document.createElement('div');
-          card.className = 'col-md-6';
+          card.className = 'col-md-6 col-lg-4 d-flex align-items-stretch';
 
           card.innerHTML = `
-            <div class="card h-100" style="cursor:pointer; position: relative;">
-              <div class="card-body">
+            <div class="card shadow-sm h-100 position-relative" role="button" tabindex="0">
+              <div class="card-body d-flex flex-column">
                 <h5 class="card-title">${idea.title}</h5>
-                <p class="card-text clamp-text">${idea.description}</p>
+                <p class="card-text clamp-2 flex-grow-1">${idea.description}</p>
                 <p><strong>Category:</strong> ${idea.category}</p>
                 <p><strong>Impact:</strong> ${idea.impact}</p>
-                <button class="btn btn-sm btn-outline-danger delete-btn" style="position: absolute; top: 10px; right: 10px;" data-id="${idea.id}">
-                  🗑️
+                <p class="text-muted small mt-auto">Author: ${idea.author || "Unknown"}</p>
+                <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${idea.id}">
+                  <i class="bi bi-trash"></i>
                 </button>
               </div>
             </div>
           `;
 
-          // Modal view
+          // Open modal on card click
           card.querySelector(".card").addEventListener('click', (event) => {
-            // prevent modal if delete button was clicked
-            if (event.target.classList.contains("delete-btn")) return;
+            if (event.target.closest(".delete-btn")) return;
 
             const modalTitle = document.getElementById('ideaModalLabel');
             const modalBody = document.getElementById('ideaModalBody');
             const modalMeta = document.getElementById('ideaModalMeta');
+
+            if (!modalTitle || !modalBody || !modalMeta) return;
 
             modalTitle.textContent = idea.title;
             modalBody.textContent = idea.description;
@@ -95,13 +110,13 @@ document.addEventListener('DOMContentLoaded', function () {
             modal.show();
           });
 
-          // Delete handler
+          // Handle delete
           card.querySelector(".delete-btn").addEventListener("click", async (e) => {
-            e.stopPropagation();  // Prevent modal trigger
+            e.stopPropagation();
 
             const ideaId = e.target.getAttribute("data-id");
 
-            if (currentUsername !== "Shama08") {
+            if (currentUsername !== SUPERADMIN_USERNAME) {
               alert("You are not authorized to delete this idea.");
               return;
             }
@@ -122,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
               if (response.ok) {
                 alert("Idea deleted successfully.");
-                loadIdeas();  // Refresh list
+                loadIdeas();
               } else {
                 alert(result.error || "Failed to delete the idea.");
               }
@@ -134,10 +149,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
           ideaList.appendChild(card);
         });
+      })
+      .catch(error => {
+        console.error("Error loading ideas:", error);
+        alert("Failed to load ideas.");
       });
   }
 
-  // Initial load
+  // Initial ideas load
   if (document.getElementById('ideaList')) {
     loadIdeas();
   }
