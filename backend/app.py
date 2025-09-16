@@ -88,6 +88,7 @@ def add_idea():
         embedding = get_embedding(input_text)
 
         if not force:
+            print("[DEBUG] Checking for similar ideas...")
             # Check for similar ideas first
             ideas = load_ideas()
             SIMILARITY_THRESHOLD = 0.75
@@ -95,8 +96,10 @@ def add_idea():
 
             for idea in ideas:
                 if idea.get("embedding") is None:
+                    print(f"[DEBUG] Skipping idea {idea.get('id')} (no embedding)")
                     continue
                 score = cosine_similarity(embedding, idea["embedding"])
+                print(f"[DEBUG] Compared to idea {idea['id']} - Score: {score:.3f}")
                 if score >= SIMILARITY_THRESHOLD:
                     matches.append({
                         "id": idea["id"],
@@ -106,11 +109,14 @@ def add_idea():
                     })
 
             if matches:
+                print("[DEBUG] Matches found:", matches)
                 matches.sort(key=lambda x: x["similarity score"], reverse=True)
                 return jsonify({
                     "warning": "Similar idea(s) found",
                     "matches": matches[:3]  # Show top 3 matches
                 }), 409  # Conflict
+            else:
+                print("[DEBUG] No similar ideas found.")
 
         ideas = load_ideas()
         new_id = max([idea.get("id", 0) for idea in ideas] + [0]) + 1
